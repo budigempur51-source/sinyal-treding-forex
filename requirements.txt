@@ -16,3 +16,5 @@ numpy
 MetaTrader5
 python-dotenv
 pydantic
+pip install google-generativeai
+pip install openai

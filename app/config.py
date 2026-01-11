@@ -115,6 +115,18 @@ class Settings(BaseModel):
     # =====================================================
     chart_last_n: int = _get_int("CHART_LAST_N", 220)
     artifacts_dir: str = _get("ARTIFACTS_DIR", str((BASE_DIR / "artifacts").resolve()))
+    
+    # =====================================================
+    # AI / INTELLIGENCE (MEGALLM)
+    # =====================================================
+    # Ganti "USE_GEMINI..." jadi generic "USE_AI..." biar rapi, 
+    # tapi kita tetep baca value lama kalau user belum update .env
+    use_ai_narrative: bool = _get_bool("USE_AI_NARRATIVE", _get_bool("USE_GEMINI_FOR_SENTIMENT", False))
+    
+    # MegaLLM (OpenAI Compatible)
+    megallm_api_key: str = _get("MEGALLM_API_KEY", _get("OPENAI_API_KEY", "")) 
+    megallm_base_url: str = _get("MEGALLM_BASE_URL", "https://ai.megallm.io/v1")
+    megallm_model: str = _get("MEGALLM_MODEL", "deepseek-ai/deepseek-v3.1") 
 
     # =====================================================
     # VALIDATION
@@ -127,11 +139,7 @@ class Settings(BaseModel):
             errors.append("MT5_LOGIN belum diisi / invalid")
         if not self.mt5_server:
             errors.append("MT5_SERVER belum diisi")
-        # mt5_path can be empty (MetaTrader5 python package can connect via installed terminal),
-        # but better to keep it set on Windows:
-        # if not self.mt5_path:
-        #     errors.append("MT5_PATH kosong (optional, tapi disarankan)")
-
+        
         # Discord optional but if enabled must be complete
         if self.discord_enabled:
             if not self.discord_bot_token:
@@ -151,6 +159,11 @@ class Settings(BaseModel):
 
         if self.chart_last_n < 80:
             errors.append("CHART_LAST_N terlalu kecil (min 80)")
+            
+        # AI Validation
+        if self.use_ai_narrative:
+            if not self.megallm_api_key:
+                errors.append("USE_AI_NARRATIVE=true tapi MEGALLM_API_KEY kosong")
 
         if errors:
             raise RuntimeError("❌ CONFIG ERROR:\n- " + "\n- ".join(errors))
